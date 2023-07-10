@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movable Black Square</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #square {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: black;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+    <div id="square"></div>
+    <script>
+        var square = document.getElementById('square');
+        var isDragging = false;
+        var initialX;
+        var initialY;
+        
+        square.addEventListener('mousedown', function(event) {
+            isDragging = true;
+            initialX = event.clientX - square.offsetLeft;
+            initialY = event.clientY - square.offsetTop;
+        });
+        
+        document.addEventListener('mousemove', function(event) {
+            if (isDragging) {
+                var newX = event.clientX - initialX;
+                var newY = event.clientY - initialY;
+                square.style.left = newX + 'px';
+                square.style.top = newY + 'px';
+            }
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+    </script>
+</body>
+</html>
