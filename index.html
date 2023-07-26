@@ -71,6 +71,15 @@
             margin-bottom: 10px;
         }
 
+        .bet-title .add-filter-btn {
+            margin-right: 10px;
+        }
+
+        .bet-title .bet-amount {
+            font-size: 16px;
+            padding: 5px;
+        }
+
         .bet-title h3 {
             margin: 0;
             margin-right: 10px;
@@ -158,12 +167,14 @@
                 <div class="bet-title">
                     <h3 style="display: none;">Bet #1</h3>
                     <button class="add-filter-btn">Add Filter</button>
+                    <input type="text" class="bet-amount" placeholder="Bet Amount ($)">
                     <button class="delete-btn">Delete</button>
                 </div>
             </div>
         </div>
 
         <button id="add-bet-btn" class="add-bet-btn">Add Another Bet</button>
+        <button id="run-simulation-btn-2" class="run-simulation-btn">Run Simulation</button>
         <div id="output-container"></div>
     </div>
 
@@ -175,15 +186,22 @@
             const selectElement = document.createElement('select');
             selectElement.className = 'dropdown';
 
+            const teams = ['76ers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics',
+                            'Clippers', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings',
+                            'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers',
+                            'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns',
+                            'Thunder', 'Timberwolves', 'Trail Blazers', 'Warriors', 'Wizards']
             const options = [
                 { name: 'season', values: ["2021-2022", "2022-2023"], type: 'dropdown' },
                 { name: 'bet_type', values: ["spread", "total", "moneyline"], type: 'dropdown' },
-                { name: 'team', values: [], type: 'dropdown' },
+                { name: 'team', values: teams, type: 'dropdown' },
                 { name: 'regular_or_playoffs', values: ["regular season", "playoffs", "all"], type: 'dropdown' },
                 { name: 'home_or_away', values: ["home", "away"], type: 'dropdown' },
                 { name: 'favorite', values: ["favorite", "underdog"], type: 'dropdown' },
-                { name: 'bookmaker', values: [], type: 'dropdown' },
-                { name: 'opponent', values: [], type: 'dropdown' },
+                { name: 'bookmaker', values: ['betmgm', 'caesars', 'draftkings', 'fanduel',
+                                                'fubo', 'pointsbet', 'riverscasino', 'sportsillustrated',
+                                                'sugarhouse', 'unibet', 'wynnbet'], type: 'dropdown' },
+                { name: 'opponent', values: teams, type: 'dropdown' },
                 { name: 'line', values: ['+', '-'], type: 'textbox' },
                 { name: 'odds', values: ['+', '-'], type: 'textbox' },
                 { name: 'over_or_under', values: ['o', 'u'], type: 'textbox' },
@@ -233,19 +251,17 @@
                 case 'home_or_away':
                 case 'favorite':
                 case 'hit':
-                    elementToPopUp = createDropdown(options.find(option => option.name === optionValue).values);
-                    break;
                 case 'team':
                 case 'bookmaker':
                 case 'opponent':
-                    elementToPopUp = createDropdown([]);
+                    elementToPopUp = createDropdown(options.find(option => option.name === optionValue).values);
                     break;
                 case 'line':
                 case 'odds':
-                    elementToPopUp = createOptionTextbox(['+', '-']);
+                    elementToPopUp = createTextboxBetween(['+', '-']);
                     break;
                 case 'over_or_under':
-                    elementToPopUp = createOptionTextbox(['o', 'u']);
+                    elementToPopUp = createTextboxBetween(['o', 'u']);
                     break;
                 default:
                     elementToPopUp = document.createElement('div');
@@ -267,6 +283,7 @@
             selectElement.addEventListener('change', () => {
                 const newOptionValue = selectElement.value;
                 const newElementToPopUp = getNewElementToPopUp(newOptionValue);
+                newElementToPopUp.classList.add('element-to-pop-up')
                 filterElement.replaceChild(newElementToPopUp, elementToPopUp);
                 elementToPopUp = newElementToPopUp;
             });
@@ -308,20 +325,60 @@
 
             return container;
         }
+        
+        function createTextboxBetween(options) {
+            const container = document.createElement('div');
+            const optionSelect = document.createElement('select');
+            optionSelect.className = 'dropdown';
+            for (const option of options) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                optionSelect.appendChild(optionElement);
+            }
+            const betweenLabel = document.createElement('span');
+            betweenLabel.textContent = 'between';
+            betweenLabel.style.marginLeft = '10px';
+            betweenLabel.style.marginRight = '10px';
+            betweenLabel.style.fontFamily = 'Arial';
+            const textbox1 = document.createElement('input');
+            textbox1.type = 'text';
+            const andLabel = document.createElement('span');
+            andLabel.textContent = 'and';
+            andLabel.style.marginLeft = '10px';
+            andLabel.style.marginRight = '10px';
+            andLabel.style.fontFamily = 'Arial';
+            const textbox2 = document.createElement('input');
+            textbox2.type = 'text';
+            container.appendChild(betweenLabel);
+            container.appendChild(optionSelect);
+            container.appendChild(textbox1);
+            container.appendChild(andLabel);
+            container.appendChild(textbox2);
+            return container;
+        }
 
         function getNewElementToPopUp(optionValue) {
+            const teams = ['76ers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics',
+                            'Clippers', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings',
+                            'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers',
+                            'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns',
+                            'Thunder', 'Timberwolves', 'Trail Blazers', 'Warriors', 'Wizards']
+
             const options = [
                 { name: 'season', values: ["2021-2022", "2022-2023"], type: 'dropdown' },
                 { name: 'bet_type', values: ["spread", "total", "moneyline"], type: 'dropdown' },
-                { name: 'team', values: [], type: 'dropdown' },
+                { name: 'team', values: teams, type: 'dropdown' },
                 { name: 'regular_or_playoffs', values: ["regular season", "playoffs", "all"], type: 'dropdown' },
                 { name: 'home_or_away', values: ["home", "away"], type: 'dropdown' },
                 { name: 'favorite', values: ["favorite", "underdog"], type: 'dropdown' },
-                { name: 'bookmaker', values: [], type: 'dropdown' },
-                { name: 'opponent', values: [], type: 'dropdown' },
-                { name: 'line', values: ['+', '-'], type: 'textbox' },
-                { name: 'odds', values: ['+', '-'], type: 'textbox' },
-                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox' },
+                { name: 'bookmaker', values: ['betmgm', 'caesars', 'draftkings', 'fanduel',
+                                                'fubo', 'pointsbet', 'riverscasino', 'sportsillustrated',
+                                                'sugarhouse', 'unibet', 'wynnbet'], type: 'dropdown' },
+                { name: 'opponent', values: teams, type: 'dropdown' },
+                { name: 'line', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'odds', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between' },
                 { name: 'hit', values: ['hit', 'miss'], type: 'dropdown' }
             ];
 
@@ -331,14 +388,16 @@
                 return createDropdown(selectedOption.values);
             } else if (selectedOption.type === 'textbox') {
                 return createOptionTextbox(selectedOption.values);
+            } else if (selectedOption.type === 'textbox-between') { 
+                return createTextboxBetween(selectedOption.values);
             }
-
             return document.createElement('div');
         }
 
         const container = document.getElementById('bets-container');
         const outputContainer = document.getElementById('output-container');
         const runSimulationBtn = document.getElementById('run-simulation-btn');
+        const runSimulationBtn2 = document.getElementById('run-simulation-btn-2');
 
 
         function createBet() {
@@ -350,6 +409,7 @@
                 <div class="bet-title">
                     <h3 style="display: none;"></h3>
                     <button class="add-filter-btn">Add Filter</button>
+                    <input type="text" class="bet-amount" placeholder="Bet Amount ($)">
                     <button class="delete-btn">Delete</button>
                 </div>
             `;
@@ -401,8 +461,10 @@
             bets.forEach((bet, index) => {
                 const betNumber = index + 1;
                 const filters = bet.querySelectorAll('.dropdown-container');
+                const betAmount = bet.querySelector('.bet-amount').value;
                 const betOutput = {
                     'bet': betNumber,
+                    'bet_amount': betAmount,
                     'filters': {}
                 };
                 filters.forEach((filter) => {
@@ -413,8 +475,16 @@
                         betOutput['filters'][selectedOption] = elementToPopUp.value;
                     } else if (elementToPopUp.tagName === 'DIV') {
                         const optionSelect = elementToPopUp.querySelector('.dropdown');
-                        const textbox = elementToPopUp.querySelector('input');
-                        betOutput['filters'][selectedOption] = [optionSelect.value, textbox.value];
+                        //const textbox = elementToPopUp.querySelector('input');
+                        const elementInputs = elementToPopUp.querySelectorAll('input');
+                        if (elementInputs.length === 2) {
+                            const value1 = elementInputs[0].value;
+                            const value2 = elementInputs[1].value;
+                            betOutput['filters'][selectedOption] = [optionSelect.value, value1, value2];
+                        } else {
+                            const textbox = elementToPopUp.querySelector('input');
+                            betOutput['filters'][selectedOption] = [optionSelect.value, textbox.value];
+                        }
                     }
                 });
                 output.push(betOutput);
@@ -422,7 +492,49 @@
             outputContainer.innerText = JSON.stringify(output, null, 2);
         }
 
+        async function filterDataFromAPI() {
+            try {
+                const betDataArray = [
+                    {
+                        bet: 1,
+                        bet_amount: "300",
+                        filters: {
+                            season: "2021-2022",
+                            bet_type: "spread",
+                            team: "76ers"
+                        }
+                    },
+                    {
+                        bet: 2,
+                        bet_amount: "100",
+                        filters: {
+                            team: "76ers"
+                        }
+                    }
+                ];
+
+                const response = await fetch('/filter_data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(betDataArray)
+                });
+                    // Check if the response was successful (status code 200)
+                if (response.ok) {
+                    const data = await response.json(); // Parse the response JSON data
+                    console.log(data); // Log the response data to the console
+                    // Process the data or update your UI as needed
+                } else {
+                    console.error('Error:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error', error);
+            }
+        }
+
         runSimulationBtn.addEventListener('click', runSimulation);
+        runSimulationBtn2.addEventListener('click', filterDataFromAPI);
 
         const addBetBtn = document.getElementById('add-bet-btn');
         addBetBtn.addEventListener('click', () => {
