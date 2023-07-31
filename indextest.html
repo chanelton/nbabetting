@@ -1,28 +1,646 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>JavaScript to Python Example</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>NBA Betting Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Saira+Condensed:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Saira Condensed', sans-serif;
+            background-color: #f0f0f0;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 36px;
+            color: #333333;
+        }
+
+        .add-bet-btn,
+        .run-simulation-btn {
+            background-color: #008000;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .run-simulation-btn {
+            background-color: #0000ff;
+        }
+
+        .add-bet-btn:hover,
+        .run-simulation-btn:hover {
+            background-color: #006600;
+        }
+
+        .output {
+            margin-top: 20px;
+            border: 1px solid #333333;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            overflow: auto;
+        }
+
+        /* Restyled table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        thead th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+            padding: 10px;
+            border: 1px solid #000000;
+        }
+
+        tbody td {
+            border: 1px solid #000000;
+            padding: 10px;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #ddd;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+
+        /* Restyled buttons and filters */
+        .add-filter-btn,
+        .delete-filter-btn {
+            background-color: #ff0000;
+            color: #ffffff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            margin-right: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .add-filter-btn:hover,
+        .delete-filter-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .filter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .dropdown {
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        .wide-input {
+            width: 220px;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .element-to-pop-up {
+            display: flex;
+            align-items: center;
+        }
+
+    </style>
 </head>
+
 <body>
-	<input type="text" id="input">
-	<button onclick="sendData()">Send Data</button>
-	<div id="output"></div>
-	<script>
-		function sendData() {
-			var value = document.getElementById('input').value;
-			$.ajax({
-				url: '/process',
-				type: 'POST',
-				data: { 'data': value },
-				success: function(response) {
-					document.getElementById('output').innerHTML = response;
-				},
-				error: function(error) {
-					console.log(error);
-				}
-			});
-		}
-	</script>
+    <div class="container">
+        <h1>NBA Betting Simulator</h1>
+
+        <button id="run-simulation-btn" class="run-simulation-btn">Run Simulation</button>
+
+        <div id="bets-container">
+            <div class="bet">
+                <div class="bet-title">
+                    <h3 style="display: none;">Bet #1</h3>
+                    <button class="add-filter-btn">Add Filter</button>
+                    <input type="text" class="bet-amount wide-input" placeholder="Bet Amount ($) ... $100 if blank">
+                    <button class="delete-btn">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="add-bet-btn" class="add-bet-btn">Add Another Bet</button>
+        <button id="run-simulation-btn-2" class="run-simulation-btn">Run Simulation</button>
+        <div id="output-container" class="output"></div>
+
+    </div>
+
+    <script>
+               function createFilterDropdown(betElement) {
+            const dropdownContainer = document.createElement('div');
+            dropdownContainer.className = 'dropdown-container';
+
+            const selectElement = document.createElement('select');
+            selectElement.className = 'dropdown';
+
+            const teams = ['76ers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics',
+                            'Clippers', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings',
+                            'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers',
+                            'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns',
+                            'Thunder', 'Timberwolves', 'Trail Blazers', 'Warriors', 'Wizards']
+            const options = [
+                { name: 'season', values: ["2021-2022", "2022-2023"], type: 'dropdown' },
+                { name: 'bet_type', values: ["spread", "total", "moneyline"], type: 'dropdown' },
+                { name: 'team', values: teams, type: 'dropdown' },
+                { name: 'regular_or_playoffs', values: ["regular season", "playoffs", "all"], type: 'dropdown' },
+                { name: 'home_or_away', values: ["home", "away"], type: 'dropdown' },
+                { name: 'favorite', values: ["favorite", "underdog"], type: 'dropdown' },
+                { name: 'bookmaker', values: ['betmgm', 'caesars', 'draftkings', 'fanduel',
+                                                'fubo', 'pointsbet', 'riverscasino', 'sportsillustrated',
+                                                'sugarhouse', 'unibet', 'wynnbet'], type: 'dropdown' },
+                { name: 'opponent', values: teams, type: 'dropdown' },
+                { name: 'line', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'odds', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between-over-under' },
+                { name: 'hit', values: ['hit', 'miss'], type: 'dropdown' }
+            ];
+
+            const existingFilters = betElement.querySelectorAll('.dropdown');
+            const selectedOptions = Array.from(existingFilters).map(filter => filter.value);
+
+            let defaultOption = 'season'; // Default to 'season' if no filters exist
+
+            for (const option of options) {
+                if (!selectedOptions.includes(option.name)) {
+                    defaultOption = option.name;
+                    break;
+                }
+            }
+
+            for (const option of options) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.name;
+                optionElement.textContent = option.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+                if (option.name === defaultOption) {
+                    optionElement.selected = true; // Set the next available option as the default option
+                }
+
+                selectElement.appendChild(optionElement);
+            }
+
+            const filterElement = document.createElement('div');
+            filterElement.className = 'filter';
+
+            const deleteFilterBtn = document.createElement('button');
+            deleteFilterBtn.className = 'delete-filter-btn';
+            deleteFilterBtn.textContent = 'Delete Filter';
+
+            const optionValue = selectElement.value;
+
+            // Create the element to appear next to the dropdown based on the selected option
+            let elementToPopUp;
+
+            switch (optionValue) {
+                case 'season':
+                case 'bet_type':
+                case 'regular_or_playoffs':
+                case 'home_or_away':
+                case 'favorite':
+                case 'hit':
+                case 'team':
+                case 'bookmaker':
+                case 'opponent':
+                    elementToPopUp = createDropdown(options.find(option => option.name === optionValue).values);
+                    break;
+                case 'line':
+                case 'odds':
+                    elementToPopUp = createTextboxBetween(['+', '-']);
+                    break;
+                case 'over_or_under':
+                    elementToPopUp = createOverUnderTextboxBetween(['o', 'u']);
+                    break;
+                default:
+                    elementToPopUp = document.createElement('div');
+            }
+            elementToPopUp.classList.add('element-to-pop-up'); // Add the class "element-to-pop-up"
+
+            filterElement.appendChild(deleteFilterBtn);
+            filterElement.appendChild(selectElement);
+            filterElement.appendChild(elementToPopUp);
+
+            dropdownContainer.appendChild(filterElement);
+
+            betElement.appendChild(dropdownContainer);
+
+            deleteFilterBtn.addEventListener('click', () => {
+                betElement.removeChild(dropdownContainer);
+            });
+
+            selectElement.addEventListener('change', () => {
+                const newOptionValue = selectElement.value;
+                const newElementToPopUp = getNewElementToPopUp(newOptionValue);
+                newElementToPopUp.classList.add('element-to-pop-up')
+                filterElement.replaceChild(newElementToPopUp, elementToPopUp);
+                elementToPopUp = newElementToPopUp;
+            });
+
+        }
+
+        function createDropdown(options) {
+            const dropdown = document.createElement('select');
+            dropdown.className = 'dropdown';
+
+            for (const option of options) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                dropdown.appendChild(optionElement);
+            }
+
+            return dropdown;
+        }
+
+        function createOptionTextbox(options) {
+            const container = document.createElement('div');
+
+            const optionSelect = document.createElement('select');
+            optionSelect.className = 'dropdown';
+
+            for (const option of options) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                optionSelect.appendChild(optionElement);
+            }
+
+            const textbox = document.createElement('input');
+            textbox.type = 'text';
+
+            container.appendChild(optionSelect);
+            container.appendChild(textbox);
+
+            return container;
+        }
+
+        function createTextboxBetween(options) {
+            const container = document.createElement('div');
+
+            const betweenLabel = document.createElement('span');
+            betweenLabel.textContent = 'between';
+            betweenLabel.style.marginLeft = '10px';
+            betweenLabel.style.marginRight = '10px';
+            betweenLabel.style.fontFamily = 'Arial';
+
+            const textbox1 = document.createElement('input');
+            textbox1.type = 'text';
+            textbox1.placeholder = '-∞ if blank'
+            textbox1.style.width = '100px'
+            textbox1.style.fontSize = '17px'
+
+            const andLabel = document.createElement('span');
+            andLabel.textContent = 'and';
+            andLabel.style.marginLeft = '10px';
+            andLabel.style.marginRight = '10px';
+            andLabel.style.fontFamily = 'Arial';
+
+            const textbox2 = document.createElement('input');
+            textbox2.type = 'text';
+            textbox2.placeholder = '∞ if blank'
+            textbox2.style.width = '100px'
+            textbox2.style.fontSize = '17px'
+
+            container.appendChild(betweenLabel);
+            container.appendChild(textbox1);
+            container.appendChild(andLabel);
+            container.appendChild(textbox2);
+
+            return container;
+        }
+
+        
+        function createOverUnderTextboxBetween(options) {
+            const container = document.createElement('div');
+            const optionSelect = document.createElement('select');
+            optionSelect.className = 'dropdown';
+            for (const option of options) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                optionSelect.appendChild(optionElement);
+            }
+            const betweenLabel = document.createElement('span');
+            betweenLabel.textContent = 'between';
+            betweenLabel.style.marginLeft = '10px';
+            betweenLabel.style.marginRight = '10px';
+            betweenLabel.style.fontFamily = 'Arial';
+
+            const textbox1 = document.createElement('input');
+            textbox1.type = 'text';
+            textbox1.placeholder = '-∞ if blank'
+            textbox1.style.width = '100px'
+            textbox1.style.fontSize = '17px'
+
+            const andLabel = document.createElement('span');
+            andLabel.textContent = 'and';
+            andLabel.style.marginLeft = '10px';
+            andLabel.style.marginRight = '10px';
+            andLabel.style.fontFamily = 'Arial';
+
+            const textbox2 = document.createElement('input');
+            textbox2.type = 'text';
+            textbox2.placeholder = '∞ if blank'
+            textbox2.style.width = '100px'
+            textbox2.style.fontSize = '17px'
+
+            container.appendChild(betweenLabel);
+            container.appendChild(optionSelect);
+            container.appendChild(textbox1);
+            container.appendChild(andLabel);
+            container.appendChild(textbox2);
+            return container;
+        }
+
+        function getNewElementToPopUp(optionValue) {
+            const teams = ['76ers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics',
+                            'Clippers', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings',
+                            'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers',
+                            'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns',
+                            'Thunder', 'Timberwolves', 'Trail Blazers', 'Warriors', 'Wizards']
+
+            const options = [
+                { name: 'season', values: ["2021-2022", "2022-2023"], type: 'dropdown' },
+                { name: 'bet_type', values: ["spread", "total", "moneyline"], type: 'dropdown' },
+                { name: 'team', values: teams, type: 'dropdown' },
+                { name: 'regular_or_playoffs', values: ["regular season", "playoffs"], type: 'dropdown' },
+                { name: 'home_or_away', values: ["home", "away"], type: 'dropdown' },
+                { name: 'favorite', values: ["favorite", "underdog"], type: 'dropdown' },
+                { name: 'bookmaker', values: ['betmgm', 'caesars', 'draftkings', 'fanduel',
+                                                'fubo', 'pointsbet', 'riverscasino', 'sportsillustrated',
+                                                'sugarhouse', 'unibet', 'wynnbet'], type: 'dropdown' },
+                { name: 'opponent', values: teams, type: 'dropdown' },
+                { name: 'line', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'odds', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between-over-under' },
+                { name: 'hit', values: ['hit', 'miss'], type: 'dropdown' }
+            ];
+
+            const selectedOption = options.find(option => option.name === optionValue);
+
+            if (selectedOption.type === 'dropdown') {
+                return createDropdown(selectedOption.values);
+            } else if (selectedOption.type === 'textbox') {
+                return createOptionTextbox(selectedOption.values);
+            } else if (selectedOption.type === 'textbox-between') { 
+                return createTextboxBetween(selectedOption.values);
+            } else if (selectedOption.type === 'textbox-between-over-under') { 
+                return createOverUnderTextboxBetween(selectedOption.values);
+            }
+            return document.createElement('div');
+        }
+
+        const container = document.getElementById('bets-container');
+        const outputContainer = document.getElementById('output-container');
+        const runSimulationBtn = document.getElementById('run-simulation-btn');
+        const runSimulationBtn2 = document.getElementById('run-simulation-btn-2');
+
+
+        function createBet() {
+            const betCount = container.children.length + 1;
+
+            const newBet = document.createElement('div');
+            newBet.className = 'bet';
+            newBet.innerHTML = `
+                <div class="bet-title">
+                    <h3 style="display: none;"></h3>
+                    <button class="add-filter-btn">Add Filter</button>
+                    <input type="text" class="bet-amount wide-input" placeholder="Bet Amount ($) ... $100 if blank">
+                    <button class="delete-btn">Delete</button>
+                </div>
+            `;
+
+            const deleteBtn = newBet.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => {
+                container.removeChild(newBet);
+                updateBetNumbers();
+            });
+
+            const addFilterBtn = newBet.querySelector('.add-filter-btn');
+            addFilterBtn.addEventListener('click', () => {
+                createFilterDropdown(newBet);
+            });
+
+            container.appendChild(newBet);
+
+            const styleElement = document.createElement('style');
+            styleElement.innerHTML = `
+                .bet:nth-child(${betCount})::before {
+                    content: "Bet #${betCount}";
+                }
+            `;
+            document.head.appendChild(styleElement);
+            createFilterDropdown(newBet);
+        }
+
+        function updateBetNumbers() {
+            const betElements = document.querySelectorAll('.bet');
+            betElements.forEach((betElement, index) => {
+                const betNumber = index + 1;
+                const betTitle = betElement.querySelector('.bet-title h3');
+                betTitle.textContent = `Bet #${betNumber}`;
+
+                const styleElement = document.createElement('style');
+                styleElement.innerHTML = `
+                    .bet:nth-child(${betNumber})::before {
+                        content: "Bet #${betNumber}";
+                    }
+                `;
+                document.head.appendChild(styleElement);
+            });
+        }
+
+        async function runSimulation() {
+            const bets = document.querySelectorAll('.bet');
+            const output = [];
+            bets.forEach((bet, index) => {
+                const betNumber = index + 1;
+                const filters = bet.querySelectorAll('.dropdown-container');
+                const betAmount = bet.querySelector('.bet-amount').value;
+                const betOutput = {
+                    'bet': betNumber ,
+                    'bet_amount': betAmount === '' ? '100' : betAmount,
+                    'filters': {}
+                };
+                filters.forEach((filter) => {
+                    const dropdown = filter.querySelector('.dropdown');
+                    const selectedOption = dropdown.value;
+                    const elementToPopUp = filter.querySelector('.element-to-pop-up');
+                    if (elementToPopUp.tagName === 'SELECT') {
+                        betOutput['filters'][selectedOption] = elementToPopUp.value;
+                    } else if (elementToPopUp.tagName === 'DIV') {
+                        const optionSelect = elementToPopUp.querySelector('.dropdown');
+                        const elementInputs = elementToPopUp.querySelectorAll('input');
+                        if (elementInputs.length === 2) {
+                            const value1 = elementInputs[0].value === '' ? '-inf' : elementInputs[0].value;
+                            const value2 = elementInputs[1].value === '' ? 'inf' : elementInputs[1].value;
+                            if (optionSelect == null) {
+                                betOutput['filters'][selectedOption] = [value1, value2];
+                            } else {
+                                betOutput['filters'][selectedOption] = [optionSelect.value, value1, value2];
+                            }
+                        } else {
+                            const textbox = elementToPopUp.querySelector('input');
+                            betOutput['filters'][selectedOption] = [optionSelect.value, textbox.value];
+                        }
+                    }
+                });
+                output.push(betOutput);
+            });
+            const data = await filterDataFromAPI(output);
+            // outputContainer.innerText = JSON.stringify(data, null, 2);
+            const table = createTableFromOutput(data);
+            outputContainer.innerHTML = '';
+            outputContainer.appendChild(table);
+        }
+
+        async function filterDataFromAPI(outputArr) {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/filter_data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(outputArr),
+                    mode: 'cors',
+                });
+                    // Check if the response was successful (status code 200)
+                if (response.ok) {
+                    const data = await response.json(); // Parse the response JSON data
+                    console.log(data); // Log the response data to the console
+                    return data;
+                } else {
+                    console.error('Error:', response.status, response.statusText);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error', error);
+                return null;
+            }  
+        }
+
+        function createTableFromOutput(data) {
+            const table = document.createElement('table');
+
+            // Create the table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+
+            const columnNames = [
+                'Bet Number',
+                'Number of Bettable Games',
+                'Number of Bets Won',
+                'Wager Amount ($)',
+                'Total Wager',
+                'Total Winnings',
+                'Profit',
+                'Profit Per Bet'
+            ];
+
+            for (const columnName of columnNames) {
+                const th = document.createElement('th');
+                th.textContent = columnName;
+                headerRow.appendChild(th);
+            }
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Create the table body
+            const tbody = document.createElement('tbody');
+
+            for (let i = 0; i < data.length; i++) {
+                const tr = document.createElement('tr');
+                const row = data[i];
+                for (const value of row) {
+                    const td = document.createElement('td');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                }
+
+                // Apply a different background color to non-white rows
+                if (i % 2 !== 0) {
+                    tr.style.backgroundColor = '#e6e6e6';
+                }
+
+                tbody.appendChild(tr);
+            }
+
+            table.appendChild(tbody);
+            return table;
+        }
+
+
+
+        runSimulationBtn.addEventListener('click', runSimulation);
+        runSimulationBtn2.addEventListener('click', runSimulation);
+
+        const addBetBtn = document.getElementById('add-bet-btn');
+        addBetBtn.addEventListener('click', () => {
+            createBet();
+            updateBetNumbers();
+        });
+
+        const firstBet = document.querySelector('.bet');
+        const firstAddFilterBtn = firstBet.querySelector('.add-filter-btn');
+        firstAddFilterBtn.addEventListener('click', () => {
+            createFilterDropdown(firstBet);
+        });
+
+        const deleteFirstBetBtn = firstBet.querySelector('.delete-btn');
+        deleteFirstBetBtn.addEventListener('click', () => {
+            container.removeChild(firstBet);
+            updateBetNumbers();
+        });
+
+        createFilterDropdown(firstBet);
+    </script>
 </body>
+
 </html>

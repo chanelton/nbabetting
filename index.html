@@ -9,14 +9,14 @@
     <style>
         body {
             font-family: 'Saira Condensed', sans-serif;
-            background-color: #d0c8c8;
+            background-color: #cfcfcf;
             color: #333333;
             margin: 0;
             padding: 0;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 50%;
             margin: 0 auto;
             padding: 20px;
         }
@@ -153,6 +153,59 @@
             border: 1px solid #333333;
             padding: 10px;
         }
+
+        .wide-input {
+            width: 220px;
+        }
+
+        .empty-bottom {
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        /* Style for the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        /* Style for the table header row */
+        thead th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #000000;
+        }
+
+        /* Style for the table body rows */
+        tbody td {
+            border: 1px solid #000000;
+            padding: 10px;
+        }
+
+         /* Alternating row background colors */
+        tbody tr:nth-child(odd) {
+            background-color: #bfbebe;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /* Hover effect for table rows */
+        tbody tr:hover {
+            background-color: #fdff32;
+        }
+
+        /* More defined separating lines between cells */
+        th, td {
+            border: 1px solid #ccc;
+        }
+
     </style>
 </head>
 
@@ -167,7 +220,7 @@
                 <div class="bet-title">
                     <h3 style="display: none;">Bet #1</h3>
                     <button class="add-filter-btn">Add Filter</button>
-                    <input type="text" class="bet-amount" placeholder="Bet Amount ($)">
+                    <input type="text" class="bet-amount wide-input" placeholder="Bet Amount ($) ... $100 if blank">
                     <button class="delete-btn">Delete</button>
                 </div>
             </div>
@@ -175,7 +228,11 @@
 
         <button id="add-bet-btn" class="add-bet-btn">Add Another Bet</button>
         <button id="run-simulation-btn-2" class="run-simulation-btn">Run Simulation</button>
+        <strong style="text-align: left; font-size: 35px; margin-top: 30px;">Simulation Results</strong>
+        <div style="text-align: left; font-size: 20px;">Advanced Stats <input type="checkbox" id="advanced-stats-checkbox"></div>
         <div id="output-container"></div>
+        <div class="empty-bottom"></div>
+
     </div>
 
     <script>
@@ -202,9 +259,9 @@
                                                 'fubo', 'pointsbet', 'riverscasino', 'sportsillustrated',
                                                 'sugarhouse', 'unibet', 'wynnbet'], type: 'dropdown' },
                 { name: 'opponent', values: teams, type: 'dropdown' },
-                { name: 'line', values: ['+', '-'], type: 'textbox' },
-                { name: 'odds', values: ['+', '-'], type: 'textbox' },
-                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox' },
+                { name: 'line', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'odds', values: ['+', '-'], type: 'textbox-between' },
+                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between-over-under' },
                 { name: 'hit', values: ['hit', 'miss'], type: 'dropdown' }
             ];
 
@@ -261,7 +318,7 @@
                     elementToPopUp = createTextboxBetween(['+', '-']);
                     break;
                 case 'over_or_under':
-                    elementToPopUp = createTextboxBetween(['o', 'u']);
+                    elementToPopUp = createOverUnderTextboxBetween(['o', 'u']);
                     break;
                 default:
                     elementToPopUp = document.createElement('div');
@@ -325,8 +382,44 @@
 
             return container;
         }
-        
+
         function createTextboxBetween(options) {
+            const container = document.createElement('div');
+
+            const betweenLabel = document.createElement('span');
+            betweenLabel.textContent = 'between';
+            betweenLabel.style.marginLeft = '10px';
+            betweenLabel.style.marginRight = '10px';
+            betweenLabel.style.fontFamily = 'Arial';
+
+            const textbox1 = document.createElement('input');
+            textbox1.type = 'text';
+            textbox1.placeholder = '-∞ if blank'
+            textbox1.style.width = '100px'
+            textbox1.style.fontSize = '17px'
+
+            const andLabel = document.createElement('span');
+            andLabel.textContent = 'and';
+            andLabel.style.marginLeft = '10px';
+            andLabel.style.marginRight = '10px';
+            andLabel.style.fontFamily = 'Arial';
+
+            const textbox2 = document.createElement('input');
+            textbox2.type = 'text';
+            textbox2.placeholder = '∞ if blank'
+            textbox2.style.width = '100px'
+            textbox2.style.fontSize = '17px'
+
+            container.appendChild(betweenLabel);
+            container.appendChild(textbox1);
+            container.appendChild(andLabel);
+            container.appendChild(textbox2);
+
+            return container;
+        }
+
+        
+        function createOverUnderTextboxBetween(options) {
             const container = document.createElement('div');
             const optionSelect = document.createElement('select');
             optionSelect.className = 'dropdown';
@@ -341,15 +434,25 @@
             betweenLabel.style.marginLeft = '10px';
             betweenLabel.style.marginRight = '10px';
             betweenLabel.style.fontFamily = 'Arial';
+
             const textbox1 = document.createElement('input');
             textbox1.type = 'text';
+            textbox1.placeholder = '-∞ if blank'
+            textbox1.style.width = '100px'
+            textbox1.style.fontSize = '17px'
+
             const andLabel = document.createElement('span');
             andLabel.textContent = 'and';
             andLabel.style.marginLeft = '10px';
             andLabel.style.marginRight = '10px';
             andLabel.style.fontFamily = 'Arial';
+
             const textbox2 = document.createElement('input');
             textbox2.type = 'text';
+            textbox2.placeholder = '∞ if blank'
+            textbox2.style.width = '100px'
+            textbox2.style.fontSize = '17px'
+
             container.appendChild(betweenLabel);
             container.appendChild(optionSelect);
             container.appendChild(textbox1);
@@ -369,7 +472,7 @@
                 { name: 'season', values: ["2021-2022", "2022-2023"], type: 'dropdown' },
                 { name: 'bet_type', values: ["spread", "total", "moneyline"], type: 'dropdown' },
                 { name: 'team', values: teams, type: 'dropdown' },
-                { name: 'regular_or_playoffs', values: ["regular season", "playoffs", "all"], type: 'dropdown' },
+                { name: 'regular_or_playoffs', values: ["regular season", "playoffs"], type: 'dropdown' },
                 { name: 'home_or_away', values: ["home", "away"], type: 'dropdown' },
                 { name: 'favorite', values: ["favorite", "underdog"], type: 'dropdown' },
                 { name: 'bookmaker', values: ['betmgm', 'caesars', 'draftkings', 'fanduel',
@@ -378,7 +481,7 @@
                 { name: 'opponent', values: teams, type: 'dropdown' },
                 { name: 'line', values: ['+', '-'], type: 'textbox-between' },
                 { name: 'odds', values: ['+', '-'], type: 'textbox-between' },
-                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between' },
+                { name: 'over_or_under', values: ['o', 'u'], type: 'textbox-between-over-under' },
                 { name: 'hit', values: ['hit', 'miss'], type: 'dropdown' }
             ];
 
@@ -390,6 +493,8 @@
                 return createOptionTextbox(selectedOption.values);
             } else if (selectedOption.type === 'textbox-between') { 
                 return createTextboxBetween(selectedOption.values);
+            } else if (selectedOption.type === 'textbox-between-over-under') { 
+                return createOverUnderTextboxBetween(selectedOption.values);
             }
             return document.createElement('div');
         }
@@ -409,7 +514,7 @@
                 <div class="bet-title">
                     <h3 style="display: none;"></h3>
                     <button class="add-filter-btn">Add Filter</button>
-                    <input type="text" class="bet-amount" placeholder="Bet Amount ($)">
+                    <input type="text" class="bet-amount wide-input" placeholder="Bet Amount ($) ... $100 if blank">
                     <button class="delete-btn">Delete</button>
                 </div>
             `;
@@ -434,7 +539,6 @@
                 }
             `;
             document.head.appendChild(styleElement);
-
             createFilterDropdown(newBet);
         }
 
@@ -455,7 +559,7 @@
             });
         }
 
-        function runSimulation() {
+        async function runSimulation() {
             const bets = document.querySelectorAll('.bet');
             const output = [];
             bets.forEach((bet, index) => {
@@ -463,8 +567,8 @@
                 const filters = bet.querySelectorAll('.dropdown-container');
                 const betAmount = bet.querySelector('.bet-amount').value;
                 const betOutput = {
-                    'bet': betNumber,
-                    'bet_amount': betAmount,
+                    'bet': betNumber ,
+                    'bet_amount': betAmount === '' ? '100' : betAmount,
                     'filters': {}
                 };
                 filters.forEach((filter) => {
@@ -475,12 +579,15 @@
                         betOutput['filters'][selectedOption] = elementToPopUp.value;
                     } else if (elementToPopUp.tagName === 'DIV') {
                         const optionSelect = elementToPopUp.querySelector('.dropdown');
-                        //const textbox = elementToPopUp.querySelector('input');
                         const elementInputs = elementToPopUp.querySelectorAll('input');
                         if (elementInputs.length === 2) {
-                            const value1 = elementInputs[0].value;
-                            const value2 = elementInputs[1].value;
-                            betOutput['filters'][selectedOption] = [optionSelect.value, value1, value2];
+                            const value1 = elementInputs[0].value === '' ? '-inf' : elementInputs[0].value;
+                            const value2 = elementInputs[1].value === '' ? 'inf' : elementInputs[1].value;
+                            if (optionSelect == null) {
+                                betOutput['filters'][selectedOption] = [value1, value2];
+                            } else {
+                                betOutput['filters'][selectedOption] = [optionSelect.value, value1, value2];
+                            }
                         } else {
                             const textbox = elementToPopUp.querySelector('input');
                             betOutput['filters'][selectedOption] = [optionSelect.value, textbox.value];
@@ -489,52 +596,119 @@
                 });
                 output.push(betOutput);
             });
-            outputContainer.innerText = JSON.stringify(output, null, 2);
+            const data = await filterDataFromAPI(output);
+            // outputContainer.innerText = JSON.stringify(data, null, 2);
+            const table = createTableFromOutput(data, showAdvancedStats);
+            outputContainer.innerHTML = '';
+            outputContainer.appendChild(table);
         }
 
-        async function filterDataFromAPI() {
+        async function filterDataFromAPI(outputArr) {
             try {
-                const betDataArray = [
-                    {
-                        bet: 1,
-                        bet_amount: "300",
-                        filters: {
-                            season: "2021-2022",
-                            bet_type: "spread",
-                            team: "76ers"
-                        }
-                    },
-                    {
-                        bet: 2,
-                        bet_amount: "100",
-                        filters: {
-                            team: "76ers"
-                        }
-                    }
-                ];
-
-                const response = await fetch('/filter_data', {
+                const response = await fetch('http://127.0.0.1:5000/filter_data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(betDataArray)
+                    body: JSON.stringify(outputArr),
+                    mode: 'cors',
                 });
                     // Check if the response was successful (status code 200)
                 if (response.ok) {
                     const data = await response.json(); // Parse the response JSON data
                     console.log(data); // Log the response data to the console
-                    // Process the data or update your UI as needed
+                    simulationData = data
+                    return data;
                 } else {
                     console.error('Error:', response.status, response.statusText);
+                    return null;
                 }
             } catch (error) {
                 console.error('Error', error);
-            }
+                return null;
+            }  
         }
 
+        function createTableFromOutput(data, showAdvancedStats) {
+            const table = document.createElement('table');
+
+            // Create the table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+
+            const columnNamesAll = [
+                'Bet Number',
+                'Number of Bettable Games',
+                'Number of Bets Won',
+                'Winning Percentage',
+                'Wager Amount ($)',
+                'Total Wager',
+                'Total Winnings',
+                'Total Profit',
+                'Profit Per Bet',
+                'Profit Per Dollar Waged'
+            ];
+
+            const columnNamesSimple = [
+                'Bet Number',
+                'Number of Bettable Games',
+                'Number of Bets Won',
+                'Wager Amount ($)',
+                'Total Wager',
+                'Total Winnings',
+                'Total Profit'
+            ];
+            
+            const columnNames = showAdvancedStats ? columnNamesAll : columnNamesSimple;
+            for (const columnName of columnNames) {
+                const th = document.createElement('th');
+                th.textContent = columnName;
+                headerRow.appendChild(th);
+            }
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Create the table body
+            const tbody = document.createElement('tbody');
+
+            for (let i = 0; i < data.length; i++) {
+                const tr = document.createElement('tr');
+                const row = data[i];
+
+                // Display columns based on checkbox state
+                const displayColumns = showAdvancedStats ? columnNamesAll : columnNamesSimple;
+                
+                for (let j = 0; j < columnNamesAll.length; j++) {
+                    const columnName = columnNamesAll[j];
+
+                    // Only display the column if it's in the displayColumns array
+                    if (displayColumns.includes(columnName)) {
+                        const td = document.createElement('td');
+                        td.textContent = row[j];
+                        tr.appendChild(td);
+                    }
+                }
+
+                tbody.appendChild(tr);
+            }
+
+            table.appendChild(tbody);
+            return table;
+        }
+        
+        let simulationData = null
+        let showAdvancedStats = null
+        const advancedStatsCheckbox = document.getElementById('advanced-stats-checkbox');
+        advancedStatsCheckbox.addEventListener('change', () => {
+            showAdvancedStats = advancedStatsCheckbox.checked;
+            const table = createTableFromOutput(simulationData, showAdvancedStats);
+            outputContainer.innerHTML = '';
+            outputContainer.appendChild(table);
+        });
+
         runSimulationBtn.addEventListener('click', runSimulation);
-        runSimulationBtn2.addEventListener('click', filterDataFromAPI);
+        runSimulationBtn2.addEventListener('click', runSimulation);
 
         const addBetBtn = document.getElementById('add-bet-btn');
         addBetBtn.addEventListener('click', () => {
